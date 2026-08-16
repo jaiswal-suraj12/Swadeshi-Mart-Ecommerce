@@ -11,6 +11,19 @@ const CategoryLinks = () => {
     "books",
     "furniture",
     "clothing",
+    "shoes",
+    "healthCares",
+    "beauty",
+    "groceries",
+    "homeKitchen",
+    "toys",
+    "sports",
+    "automotive",
+    "accessories",
+    "bags",
+   "jewellery",
+
+
   ];
 
   const { category: currentCategory } = useParams();

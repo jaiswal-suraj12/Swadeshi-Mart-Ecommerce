@@ -168,6 +168,21 @@ const ProductForm = ({ editingProduct, onCancelEdit, onSaved }) => {
           <option value="furniture">Furniture</option>
           <option value="mobiles">Mobiles</option>
           <option value="wearables">Wearables</option>
+          <option value="laptops">Laptops</option>
+          <option value="shoes">Shoes</option>
+          <option value="healthCares">HealthCares</option>
+          <option value="beauty">Beauty</option>
+          <option value="groceries">Groceries</option>
+          <option value="homeKitchen">Home & Kitchen</option>
+          <option value="toys">Toys</option>
+          <option value="sports">Sports</option>
+          <option value="automotive">Automotive</option>
+          <option value="accessories">Accessories</option>
+          <option value="bags">Bags</option>
+          <option value="jewellery">Jewellery</option>
+
+
+
 
         </select>
 

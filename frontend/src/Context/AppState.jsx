@@ -4,14 +4,20 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const AppState = (props) => {
-const URL = `${import.meta.env.VITE_API_URL}/api`;  
+  const URL = `${import.meta.env.VITE_API_URL}/api`;
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUSerProfile] = useState("");
-  const [userCart, setUserCart] = useState([]);
+  const [userCart, setUserCart] = useState(() => {
+  const savedCart = localStorage.getItem("guestCart");
+
+  return savedCart
+    ? JSON.parse(savedCart)
+    : [];
+});
   const [allProducts, setAllProducts] = useState([]);
   const [productsingleDetails, setProductSingleDetails] = useState("");
-  
+
   const [wishlist, setWishlist] = useState(() => {
     return JSON.parse(localStorage.getItem("wishlist") || "[]");
   });
@@ -55,39 +61,64 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
 
   // ================= PROFILE =================
   const getUserProfile = async () => {
-    try {
-      const res = await axios.get(`${URL}/auth/profile`, {
+  if (!token) {
+    setUSerProfile("");
+    return;
+  }
+
+  try {
+    const res = await axios.get(`${URL}/auth/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    setUSerProfile(res.data.user);
+  } catch (error) {
+    console.error(
+      "Profile error:",
+      error.response?.data || error.message
+    );
+  }
+};
+  const updateProfile = async (formData) => {
+  if (!token) {
+    toast.info("Please login first");
+    return null;
+  }
+
+  try {
+    const res = await axios.put(
+      `${URL}/auth/profile`,
+      formData,
+      {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
-      });
-
-      setUSerProfile(res.data.user);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-  const updateProfile = async (formData) => {
-    try {
-      const res = await axios.put(
-        `${URL}/auth/profile`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (res.data.success) {
-        setUSerProfile(res.data.user);
-        return res.data;
       }
-    } catch (error) {
-      console.log(error.response?.data || error.message);
+    );
+
+    if (res.data.success) {
+      setUSerProfile(res.data.user);
+      return res.data;
     }
-  };
+
+    return null;
+  } catch (error) {
+    console.error(
+      "Profile update error:",
+      error.response?.data || error.message
+    );
+
+    toast.error(
+      error.response?.data?.message ||
+      "Profile update failed"
+    );
+
+    return null;
+  }
+};
 
   // ================= LOGIN =================
   const loginUserAndAdmin = async (email, password) => {
@@ -117,7 +148,14 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
   };
 
   // ================= CART =================
+  // ================= GET USER CART =================
   const getuserCart = async () => {
+    // Guest user → don't call protected API
+    if (!token) {
+      setUserCart([]);
+      return;
+    }
+
     try {
       const res = await axios.get(`${URL}/cart/user`, {
         headers: {
@@ -125,13 +163,22 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
         },
       });
 
-      setUserCart(res.data.cart.items || []);
+      setUserCart(res.data.cart?.items || []);
     } catch (error) {
-      console.error(error.message);
+      console.error(
+        "Cart fetch error:",
+        error.response?.data || error.message
+      );
+      setUserCart([]);
     }
   };
-
+  // =========removecart==========
   const removeCart = async (id) => {
+    if (!token) {
+      toast.info("Please login first 🛒");
+      return;
+    }
+
     try {
       await axios.delete(`${URL}/cart/remove/${id}`, {
         headers: {
@@ -139,15 +186,32 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
         },
       });
 
-      setUserCart((prev) => prev.filter((item) => item.productId !== id));
+      setUserCart((prev) =>
+        prev.filter(
+          (item) => item.productId?.toString() !== id?.toString()
+        )
+      );
 
       toast.success("Item removed ✅");
     } catch (error) {
-      console.error(error.message);
+      console.error(
+        "Remove cart error:",
+        error.response?.data || error.message
+      );
+
+      toast.error(
+        error.response?.data?.message ||
+        "Failed to remove item"
+      );
     }
   };
-
+  //==========clearCart==============
   const clearCart = async () => {
+    if (!token) {
+      toast.info("Please login first 🛒");
+      return;
+    }
+
     try {
       await axios.delete(`${URL}/cart/clear`, {
         headers: {
@@ -156,9 +220,18 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
       });
 
       setUserCart([]);
+
       toast.success("Cart cleared ✅");
     } catch (error) {
-      toast.error("Failed to clear cart ❌");
+      console.error(
+        "Clear cart error:",
+        error.response?.data || error.message
+      );
+
+      toast.error(
+        error.response?.data?.message ||
+        "Failed to clear cart"
+      );
     }
   };
 
@@ -188,6 +261,7 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
   };
 
   // ================= ADD TO CART =================
+
   const addTOCart = async (
     productId,
     image,
@@ -196,9 +270,16 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
     price,
     qty = 1
   ) => {
+    // Guest user
+    if (!token) {
+      toast.info("Please login first to add products to cart 🛒");
+      return;
+    }
+
     try {
       const exists = userCart?.some(
-        (item) => item.productId?.toString() === productId?.toString()
+        (item) =>
+          item.productId?.toString() === productId?.toString()
       );
 
       if (exists) {
@@ -208,7 +289,14 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
 
       await axios.post(
         `${URL}/cart/add`,
-        { productId, image, title, description, price, qty },
+        {
+          productId,
+          image,
+          title,
+          description,
+          price,
+          qty,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -217,10 +305,18 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
       );
 
       await getuserCart();
+
       toast.success("Added to cart 🛒");
     } catch (error) {
-      console.log(error);
-      toast.error("Failed to add item ❌");
+      console.error(
+        "Add to cart error:",
+        error.response?.data || error.message
+      );
+
+      toast.error(
+        error.response?.data?.message ||
+        "Failed to add item"
+      );
     }
   };
 
@@ -292,94 +388,166 @@ const URL = `${import.meta.env.VITE_API_URL}/api`;
     }
   };
 
+  
   // ================= ADDRESSES =================
-  const getAddresses = async () => {
-    try {
-      const res = await axios.get(`${URL}/address/get`, {
+
+const getAddresses = async () => {
+  if (!token) {
+    setAddresses([]);
+    return;
+  }
+
+  try {
+    const res = await axios.get(`${URL}/address/get`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    setAddresses(res.data.userAddress || []);
+  } catch (error) {
+    console.error(
+      "Address fetch error:",
+      error.response?.data || error.message
+    );
+
+    setAddresses([]);
+  }
+};
+
+const addAddress = async (address) => {
+  if (!token) {
+    toast.info("Please login first to add an address");
+    return false;
+  }
+
+  try {
+    const res = await axios.post(
+      `${URL}/address/add`,
+      address,
+      {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
-
-      setAddresses(res.data.userAddress || []);
-    } catch (error) {
-      toast.error("Failed to fetch addresses ❌");
-    }
-  };
-
-  const addAddress = async (address) => {
-    try {
-      const res = await axios.post(`${URL}/address/add`, address, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.data.success) {
-        await getAddresses();
-        return true;
       }
-      return false;
-    } catch (error) {
-      toast.error("Failed to add address ❌");
-      return false;
-    }
-  };
+    );
 
+    if (res.data.success) {
+      await getAddresses();
+      toast.success("Address saved successfully");
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error(
+      "Add address error:",
+      error.response?.data || error.message
+    );
+
+    toast.error(
+      error.response?.data?.message ||
+      "Failed to add address"
+    );
+
+    return false;
+  }
+};
+  
   // ================= ORDERS =================
-  const getUserOrders = async () => {
-    try {
-      const res = await axios.get(`${URL}/orders/my-orders`, {
+
+const getUserOrders = async () => {
+  if (!token) {
+    setOrders([]);
+    return;
+  }
+
+  try {
+    const res = await axios.get(
+      `${URL}/orders/my-orders`,
+      {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      }
+    );
 
-      setOrders(res.data);
-    } catch (error) {
-      toast.error("Failed to load orders");
-      console.log(error.message);
-    }
-  };
+    setOrders(res.data || []);
+  } catch (error) {
+    console.error(
+      "Orders fetch error:",
+      error.response?.data || error.message
+    );
 
-  const getSingleOrder = async (id) => {
-    try {
-      const res = await axios.get(`${URL}/orders/${id}`, {
+    setOrders([]);
+  }
+};
+
+const getSingleOrder = async (id) => {
+  if (!token) {
+    toast.info("Please login to view your order");
+    return;
+  }
+
+  try {
+    const res = await axios.get(
+      `${URL}/orders/${id}`,
+      {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      }
+    );
 
-      setSingleOrder(res.data);
-    } catch (error) {
-      toast.error("Order not found");
-      console.log(error.message);
-    }
-  };
-  const createOrder = async (orderData) => {
-    try {
-      const res = await axios.post(
-        `${URL}/orders`,
-        orderData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // ⚠️ must match backend
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    setSingleOrder(res.data);
+  } catch (error) {
+    console.error(
+      "Single order error:",
+      error.response?.data || error.message
+    );
 
-      toast.success("Order created successfully");
-      return res.data;
+    toast.error(
+      error.response?.data?.message ||
+      "Order not found"
+    );
+  }
+};
 
-    } catch (error) {
-      console.log("ORDER ERROR:", error.response?.data || error.message);
+const createOrder = async (orderData) => {
+  if (!token) {
+    toast.info("Please login before placing an order");
+    return null;
+  }
 
-      toast.error(
-        error.response?.data?.message || "Payment failed ❌"
-      );
-    }
-  };
+  try {
+    const res = await axios.post(
+      `${URL}/orders`,
+      orderData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    toast.success("Order created successfully");
+
+    return res.data;
+  } catch (error) {
+    console.error(
+      "ORDER ERROR:",
+      error.response?.data || error.message
+    );
+
+    toast.error(
+      error.response?.data?.message ||
+      "Order creation failed"
+    );
+
+    return null;
+  }
+};
 
   return (
     <AppContext.Provider

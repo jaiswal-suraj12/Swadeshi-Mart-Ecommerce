@@ -166,7 +166,7 @@ const Product = () => {
                         transition
                       "
                     >
-                      ❤️ Wishlist
+                      ❤️Wishlist
                     </button>
 
                     {/* BUY NOW */}

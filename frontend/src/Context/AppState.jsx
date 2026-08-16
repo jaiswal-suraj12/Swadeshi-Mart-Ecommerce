@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const AppState = (props) => {
-  const URL = "http://localhost:3200/api";
+const URL = `${import.meta.env.VITE_API_URL}/api`;  
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUSerProfile] = useState("");

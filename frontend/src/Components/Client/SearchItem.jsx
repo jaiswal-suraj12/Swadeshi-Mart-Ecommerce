@@ -12,7 +12,7 @@ const SearchItem = () => {
 
   const query = new URLSearchParams(location.search).get("q");
 
-  const BASE_URL = "http://localhost:3200";
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   // ================= SEARCH =================
   useEffect(() => {

@@ -13,7 +13,7 @@ const ProductDetails = () => {
     addTOCart,
   } = useContext(AppContext);
 
-  const BASE_URL = "http://localhost:3200";
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   const [loading, setLoading] = useState(true);
 

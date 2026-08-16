@@ -6,7 +6,7 @@ import AppContext from "../../Context/AppContext";
 
 const RelatedProduct = ({ category }) => {
   const [products, setProducts] = useState([]);
-  const BASE_URL = "http://localhost:3200";
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ const RelatedProduct = ({ category }) => {
 
       try {
         const res = await axios.get(
-          `http://localhost:3200/api/products/category`,
+          `${import.meta.env.VITE_API_URL}/api/products/category`,
           {
             params: { category },
           }

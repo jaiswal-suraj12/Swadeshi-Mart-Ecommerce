@@ -102,7 +102,7 @@ const Payment = () => {
 
       // ================= 1. CREATE ORDER =================
       const orderRes = await axios.post(
-        "http://localhost:3200/api/orders",
+        `${import.meta.env.VITE_API_URL}/api/orders`,
         {
           orderItems,
           shippingAddress,
@@ -120,7 +120,7 @@ const Payment = () => {
 
       // ================= 2. CREATE RAZORPAY ORDER =================
       const { data } = await axios.post(
-        "http://localhost:3200/api/payment/create-order",
+       `${import.meta.env.VITE_API_URL}/api/payment/create-order` ,
         {
           orderDbId,
         },
@@ -143,7 +143,7 @@ const Payment = () => {
         handler: async (response) => {
           try {
             await axios.post(
-              "http://localhost:3200/api/payment/verify",
+              `${import.meta.env.VITE_API_URL}/api/payment/verify`,
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -190,7 +190,7 @@ const Payment = () => {
 
       rzp.on("payment.failed", async function () {
         await axios.post(
-          "http://localhost:3200/api/payment/failed",
+         `${import.meta.env.VITE_API_URL}/api/payment/failed`,
           {
             orderDbId,
           },

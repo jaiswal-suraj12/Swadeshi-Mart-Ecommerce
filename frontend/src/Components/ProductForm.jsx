@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const API_URL = "http://localhost:3200/api";
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const emptyForm = {
   title: "",

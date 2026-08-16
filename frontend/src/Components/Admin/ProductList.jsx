@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-const API_URL = "http://localhost:3200/api";
-const BASE_URL = "http://localhost:3200";
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const ProductList = ({ refreshKey, onEdit, onDeleted }) => {
   const [products, setProducts] = useState([]);

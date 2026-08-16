@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const URL = "http://localhost:3200/api/address"; // your backend URL
+const URL = `${import.meta.env.VITE_API_URL}/api/address`; // your backend URL
 
 // Add new address
 export const addAddress = async (data, token) => {

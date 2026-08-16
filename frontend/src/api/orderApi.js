@@ -1,5 +1,5 @@
 import axios from "axios";
-const BASE_URL = "http://localhost:3200/api";
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 export const createOrder = async (order) => {
   const { data } = await axios.post(`${BASE_URL}/orders`, order);

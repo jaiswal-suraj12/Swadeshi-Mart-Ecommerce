@@ -52,6 +52,8 @@ app.use("/api/address",addressRoutes)
 //payment routes
 app.use("/api/payment",paymentRoutes)
 
-app.listen(3200, () => {
-  console.log("Server running on port 3200");
+const PORT = process.env.PORT || 3200;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

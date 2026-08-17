@@ -170,10 +170,10 @@ const ProductForm = ({ editingProduct, onCancelEdit, onSaved }) => {
           <option value="wearables">Wearables</option>
           <option value="laptops">Laptops</option>
           <option value="shoes">Shoes</option>
-          <option value="healthCares">HealthCares</option>
+          <option value="healthcares">HealthCare</option>
           <option value="beauty">Beauty</option>
           <option value="groceries">Groceries</option>
-          <option value="homeKitchen">Home & Kitchen</option>
+          <option value="home-Kitchen">Home & Kitchen</option>
           <option value="toys">Toys</option>
           <option value="sports">Sports</option>
           <option value="automotive">Automotive</option>

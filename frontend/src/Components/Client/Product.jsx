@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect ,useMemo,useState } from "react";
 import AppContext from "../../Context/AppContext";
 import { useNavigate } from "react-router-dom";
 import CategoryLinks from "./CategoryLinks";
@@ -14,11 +14,39 @@ const Product = () => {
   const navigate = useNavigate();
 
   const BASE_URL = import.meta.env.VITE_API_URL;
+  const [sortBy, setSortBy] = useState("default");
 
   useEffect(() => {
     Allproducts();
   }, []);
+const sortedProducts = useMemo(() => {
+  const products = [...allProducts];
 
+  switch (sortBy) {
+    case "price-low":
+      return products.sort(
+        (a, b) => Number(a.price) - Number(b.price)
+      );
+
+    case "price-high":
+      return products.sort(
+        (a, b) => Number(b.price) - Number(a.price)
+      );
+
+    case "name-az":
+      return products.sort((a, b) =>
+        a.title.localeCompare(b.title)
+      );
+
+    case "name-za":
+      return products.sort((a, b) =>
+        b.title.localeCompare(a.title)
+      );
+
+    default:
+      return products;
+  }
+}, [allProducts, sortBy]);
   return (
     <div
       className="
@@ -33,10 +61,56 @@ const Product = () => {
         {/* CATEGORY LINKS */}
         <CategoryLinks />
 
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+
+  <div>
+    <h2 className="text-xl font-bold">
+      All Products
+    </h2>
+
+    <p className="text-sm text-gray-500 dark:text-gray-400">
+      {allProducts.length} products found
+    </p>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <label
+      htmlFor="sort"
+      className="font-medium text-gray-700 dark:text-gray-300"
+    >
+      Sort by:
+    </label>
+
+    <select
+      id="sort"
+      value={sortBy}
+      onChange={(e) => setSortBy(e.target.value)}
+      className="
+        rounded-lg
+        border border-gray-300
+        dark:border-gray-600
+        bg-white dark:bg-gray-800
+        text-gray-800 dark:text-white
+        px-4 py-2
+        outline-none
+        focus:ring-2
+        focus:ring-blue-500
+      "
+    >
+      <option value="default">Featured</option>
+      <option value="price-low">Price: Low to High</option>
+      <option value="price-high">Price: High to Low</option>
+      <option value="name-az">Name: A to Z</option>
+      <option value="name-za">Name: Z to A</option>
+    </select>
+  </div>
+
+</div>
+
         {/* PRODUCTS GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-          {allProducts.map((product) => {
+          {sortedProducts.map((product) => {
 
             const imageSrc =
               product.image?.startsWith("http")
